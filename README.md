@@ -15,12 +15,11 @@
 ## Features:
 
 - `Scans installed Steam games`
-- `Checks if game has been run before to confirm a populated game vessel exists`
-- `Installs dotnet48 if not already present, clears Steam dotnet stub`
-- `Downloads and installs SimHub 9.11.5`
+- `Checks if game has been run before to confirm a populated game prefix exists`
+- `Installs dotnet48 if not already present, clears Steam fake-dotnet stub`
+- `Downloads and installs SimHub 9.11.11`
 - `Gives instructions on what SimHub components to install`
-- `Sets Windows version to Windows 11 for better SimHub compatibility`
-- `Detects LMU custom Proton`
+- `Detects installed game used proton version, even LMU custom Proton-GE`
 - `Automatically adds plugins and configures LMU`
 - `Automatically adds dash.exe for RaceRomm SealHUD usage`
 
@@ -33,7 +32,7 @@ chmod +x Install_Simhub_Linux.sh runsimhub2.sh
 ./runsimhub2.sh
 ```
 
-- You probably can add this command to a menu laucher with icon.
+- You probably can add runsimhub2.sh command to a menu laucher with icon.
 
 ## Running:
 ![Select Steam Game](running.png)
@@ -44,5 +43,5 @@ So if you have 5 race games installed, you have to install dotnet48 and SimHUB 5
 There is not really so many simulators, at least for me its no big deal, as long as it works.
 
 There is a few other options out there that bridge the shared memory from the proton prefix to
-other prefixes, I tried it but it was no super easy, this script in the end does not rely on
-any additional software thats not packaged on the distro which makes it usually more streamlined.
+other prefixes, I tried it but it was not super easy, this script in the end does not rely on
+any additional software thats not packaged on distros which makes it usually more streamlined.
