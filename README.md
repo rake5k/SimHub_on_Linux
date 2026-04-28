@@ -34,6 +34,7 @@ chmod +x Install_Simhub_Linux.sh runsimhub2.sh
 ```
 
 - You probably can add runsimhub2.sh command to a menu laucher with icon.
+- If it fails, try the above tip about using Proton-GE as it is waaaay more compatible as usually newer.
 
 ## Running:
 ![Select Steam Game](running.png)
