@@ -1,5 +1,6 @@
 - A bash script to install SimHub and it's dotnet48 dependency for Steam games running under Proton/Wine.
 - Works for all games. Even LMU custom Proton GE.
+- Consider using https://github.com/gloriouseggroll/proton-ge-custom/releases as those builds are much more compatible with dotn48.
 - This also works if you only want to install dotnet48 into a Steam game. You can also opt to only reinstall/fix dotnet48 on a prefix.
 - There is also a branch here that installs CrewChief.
 - You never have to run any of this as root. Do not run as root, this is Linux :)
