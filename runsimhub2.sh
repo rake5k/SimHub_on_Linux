@@ -43,10 +43,7 @@ SIMHUB_EXE="$STEAM_DIR/steamapps/compatdata/$game/pfx/drive_c/Program Files (x86
 
 if [[ ! -f "$SIMHUB_EXE" ]]; then
     echo "SimHub is not installed for this game."
-    echo "You need to run the install script again while this game is open."
-    echo "Expected file:"
-    echo "  $SIMHUB_EXE"
-    echo ""
+    echo "You need to run Install_Simhub_Linux.sh."
     read -p "Press ENTER to exit..."
     exit 1
 fi
@@ -55,42 +52,18 @@ fi
 # Special handling for Le Mans Ultimate (2399420)
 ###############################################
 if [[ "$game" = "2399420" ]]; then
-    echo "Le Mans Ultimate detected, launching SimHub using LMU-specific Proton..."
+    echo "Le Mans Ultimate detected."
 
-    # Auto-detect LMU Proton build
-    CUSTOM_WINE_DIR=$(find "$STEAM_DIR/compatibilitytools.d" \
-        -maxdepth 1 -type d -iname "GE-Proton*LMU*" | head -1)
-
-    if [[ -z "$CUSTOM_WINE_DIR" ]]; then
-        echo "Error: No LMU-specific GE-Proton build found in compatibilitytools.d"
-        echo "Without a custom GE-Proton LMU does not work."
-        echo "Download it pre-built here: https://github.com/JacKeTUs/proton-ge-custom/releases"
-        echo "Unpack it to: ~/.steam/steam/compatibilitytools.d and restart Steam"
-        echo "After Steam restart, select the new Proton in Steam/Settings/Compatibility."
-        read -p "Press ENTER to exit..."
-        exit 1
-    fi
-
-    CUSTOM_WINE="$CUSTOM_WINE_DIR/files/bin/wine"
-    WINEPREFIX="$STEAM_DIR/steamapps/compatdata/$game/pfx"
-    SIMHUB_EXE="$WINEPREFIX/drive_c/Program Files (x86)/SimHub/SimHubWPF.exe"
-
-    if [[ ! -x "$CUSTOM_WINE" ]]; then
-        echo "Error: Wine binary not found or not executable:"
-        echo "  $CUSTOM_WINE"
-        read -p "Press ENTER to exit..."
-        exit 1
-    fi
-
+    #Create if not exists:
+    LMU_JSON="$STEAM_DIR/steamapps/common/Le Mans Ultimate/UserData/player/CustomPluginVariables.JSON"
+    
     LMU_PLUGIN_DIR="$STEAM_DIR/steamapps/common/Le Mans Ultimate/Plugins"
     mkdir -p "$LMU_PLUGIN_DIR"
 
     LMU_PLUGIN1="$LMU_PLUGIN_DIR/rFactor2SharedMemoryMapPlugin64.dll"
-    SIMHUB_PLUGIN1="$WINEPREFIX/drive_c/Program Files (x86)/SimHub/_Addons/GamePlugins/RFactor2/Bin64/Plugins/rFactor2SharedMemoryMapPlugin64.dll"
-
     LMU_PLUGIN2="$LMU_PLUGIN_DIR/LMU_SharedMemoryMapPlugin64.dll"
-
-    LMU_JSON="$STEAM_DIR/steamapps/common/Le Mans Ultimate/UserData/player/CustomPluginVariables.JSON"
+    
+    SIMHUB_PLUGIN1="/$STEAM_DIR/steamapps/compatdata/$game/pfx/drive_c/Program Files (x86)/SimHub/_Addons/GamePlugins/RFactor2/Bin64/Plugins/rFactor2SharedMemoryMapPlugin64.dll"
 
     ###############################################
     # Determine if LMU needs plugin or JSON fixes #
@@ -152,7 +125,6 @@ if [[ "$game" = "2399420" ]]; then
 
         # Install plugin 1
         if [[ ! -f "$LMU_PLUGIN1" ]]; then
-            echo "Installing rFactor2SharedMemoryMapPlugin64.dll..."
             if [[ -f "$SIMHUB_PLUGIN1" ]]; then
                 cp "$SIMHUB_PLUGIN1" "$LMU_PLUGIN_DIR/"
                 echo "✔ Installed rFactor2SharedMemoryMapPlugin64.dll"
@@ -164,8 +136,6 @@ if [[ "$game" = "2399420" ]]; then
 
         # Install plugin 2
         if [[ ! -f "$LMU_PLUGIN2" ]]; then
-            echo "Installing LMU_SharedMemoryMapPlugin64.dll..."
-
             TMP_DIR="$HOME/.cache/lmu_plugin"
             mkdir -p "$TMP_DIR"
 
@@ -234,14 +204,6 @@ if [[ "$game" = "2399420" ]]; then
         echo "You can now start Le Mans Ultimate again."
         echo ""
         exit 0
-    else
-        echo ""
-        echo "Launching SimHub with LMU Wine..."
-        WINEPREFIX="$WINEPREFIX" "$CUSTOM_WINE" "$SIMHUB_EXE" >/dev/null 2>&1 &
-        echo ""
-        echo "SimHub launched for LMU."
-        echo "Done!"
-        exit 0
     fi
 fi
 
@@ -268,9 +230,9 @@ if [[ "$game" = "211500" ]]; then
         echo "Downloading Dash..."
 
         if command -v wget >/dev/null; then
-            wget -q "https://sector3studios.github.io/webhud/public/dash.zip" -O "$CACHE_DIR/dash.zip"
+            wget -q "https://sealhud.github.io/dash.zip" -O "$CACHE_DIR/dash.zip"
         else
-            curl -sL -o "$CACHE_DIR/dash.zip" "https://sector3studios.github.io/webhud/public/dash.zip"
+            curl -sL -o "$CACHE_DIR/dash.zip" "https://sealhud.github.io/dash.zip"
         fi
 
         if [[ ! -f "$CACHE_DIR/dash.zip" ]]; then
@@ -302,4 +264,3 @@ fi
 
 echo ""
 echo "Done!"
-
