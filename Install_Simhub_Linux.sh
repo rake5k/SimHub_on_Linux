@@ -359,6 +359,8 @@ if [ $? -eq 0 ]; then
     echo
     echo -e "${YELLOW}To run it later with automatic game detection, run the other script called runsimhub2.sh${NC}"
     echo "You can add the runsimhub2.sh as a menu launcher"
+    echo -e "${YELLOW"If in the future SimHUB randomly fails to start, run this script again and re-install dotnet48, some game/steam updates mess it.${NC}"
+
     # Cleanup SimHub downloaded files
     rm -rf "$TEMP_DIR"
 
