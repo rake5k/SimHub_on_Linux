@@ -33,7 +33,7 @@ chmod +x Install_Simhub_Linux.sh runsimhub2.sh
 ```
 
 - You probably can add runsimhub2.sh command to a menu laucher with icon.
-- If it fails, consider using https://github.com/gloriouseggroll/proton-ge-custom/releases as those builds are much more compatible with dotne48 compared to the default ones installed by Steam. Its quite simple, dowload a release like GE-Proton10-34.tar.gz and unpack it to ~/.steam/steam/compatibilitytools.d/ restart steam and it should appear as option. Set it for the game and run Install script again.
+- If it fails, consider using https://github.com/gloriouseggroll/proton-ge-custom/releases as those builds are more compatible with dotnet48 compared to the Steam defaults. Its quite simple, dowload a release like GE-Proton10-34.tar.gz and unpack it to ~/.steam/steam/compatibilitytools.d/ restart Steam and it should appear as option. Set it for the game via the Steam Interface and run Install script again.
 ## Running:
 ![Select Steam Game](running.png)
 
