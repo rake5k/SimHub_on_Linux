@@ -1,8 +1,13 @@
-- A bash script to install SimHub and it's dotnet48 dependency for Steam games running under Proton/Wine.
-- Works for all games. Even LMU custom Proton GE.
-- This also works if you only want to install dotnet48 into a Steam game. You can also opt to only reinstall/fix dotnet48 on a prefix.
+- A bash script to install SimHub and it's dotnet48 dependency.
+- Works for most games. Even LMU custom Proton GE.
 - There is also a branch here that installs CrewChief.
 - You never have to run any of this as root. Do not run as root, this is Linux :)
+
+## I highly recommend you use the same Proton per game!
+- LMU -> [GE-Proton10-34-LMU-hid_fixes](https://github.com/srounce/proton-ge-custom/releases/tag/GE-Proton10-34-LMU-hid_fixes-vr) (or later) Add then Select in the Steam Interface
+- rFacto2 -> [GE-Proton10-34](https://github.com/GloriousEggroll/proton-ge-custom/releases/tag/GE-Proton10-34) (or later) Add then Select in the Steam Interface
+- AC EVO ->  Proton 11.0 (Select in the Steam Interface)
+- Raceroom -> Proton Experimental (Select in the Steam Interface)
 
 ![Select Steam Game](screenshot.png)
 
@@ -33,7 +38,7 @@ chmod +x Install_Simhub_Linux.sh runsimhub2.sh
 ```
 
 - You probably can add runsimhub2.sh command to a menu laucher with icon.
-- If it fails, consider using https://github.com/gloriouseggroll/proton-ge-custom/releases as those builds are more compatible with dotnet48 compared to the Steam defaults. Its quite simple, dowload a release like GE-Proton10-34.tar.gz and unpack it to ~/.steam/steam/compatibilitytools.d/ restart Steam and it should appear as option. Set it for the game via the Steam Interface and run Install script again.
+
 ## Running:
 ![Select Steam Game](running.png)
 
