@@ -5,7 +5,7 @@
 
 ## I highly recommend you use the bellow recommended Proton per game, SimHUB installation in other versions usually fails due to dotnet incompatibilities:
 - LMU -> [GE-Proton10-34-LMU-hid_fixes](https://github.com/srounce/proton-ge-custom/releases/tag/GE-Proton10-34-LMU-hid_fixes-vr) (or later) Add then Select in the Steam Interface
-- rFacto2 -> [GE-Proton10-34](https://github.com/GloriousEggroll/proton-ge-custom/releases/tag/GE-Proton10-34) (or later) Add then Select in the Steam Interface
+- rFactor2 -> [GE-Proton10-34](https://github.com/GloriousEggroll/proton-ge-custom/releases/tag/GE-Proton10-34) (or later) Add then Select in the Steam Interface
 - AC EVO ->  Proton 11.0 (Select in the Steam Interface)
 - Raceroom -> Proton Experimental (Select in the Steam Interface)
 
