@@ -129,7 +129,7 @@ fi
 check_game_proton_version() {
 case "$game_id" in
     211500)   # R3
-        if [[ "$PROTON_VERSION" != *"Experimental"* ]]; then
+        if [[ "$PROTON_VERSION" != *"Experimental"* && "$PROTON_VERSION" != *"11.0"* ]]; then
             echo -e "BIG WARNING: R3 was tested with ${GREEN}Proton Experimental${NC}, but you are using:${RED} $PROTON_VERSION"
             echo -e "The script won't abort, but there is no guarantee this will work!${NC}"
         else
@@ -367,7 +367,7 @@ echo -e "${CYAN}Installing SimHub... If rundll32.exe errors appear, you can igno
 WINEPREFIX="$WINEPREFIX" winetricks -q win11 > /dev/null 2>&1
 
 # Run the SimHUB installer
-protontricks-launch --appid $game_id "$SIMHUB_SETUP_EXE"
+protontricks-launch --appid $game_id "$SIMHUB_SETUP_EXE" > /dev/null 2>&1
 
 if [ $? -eq 0 ]; then
     echo -e "${GREEN}SimHub installation completed successfully!${NC}"
