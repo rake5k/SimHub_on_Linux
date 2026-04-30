@@ -13,9 +13,15 @@ if pgrep -f "SimHubWPF.exe" >/dev/null; then
     exit 1
 fi
 
-# Get the running game's AppId
-game=$(ps -eo args | grep -F "SteamLaunch AppId=" | grep -v grep \
-    | sed -n 's/.*AppId=\([0-9]\+\).*/\1/p' | head -1)
+# If the game is running, get game Id
+
+running_game_id() {
+    game=$(ps -eo args | grep -F "SteamLaunch AppId=" | grep -v grep \
+        | sed -n 's/.*AppId=\([0-9]\+\).*/\1/p' | head -1)
+
+}
+
+running_game_id
 
 if [[ -z "$game" ]]; then
     echo ""
@@ -95,10 +101,9 @@ if [[ "$game" = "2399420" ]]; then
     #########################################################
     if [[ "$NEED_FIX" -eq 1 ]]; then
         while true; do
-            current_game=$(ps -eo args | grep -F "SteamLaunch AppId=" | grep -v grep \
-                | sed -n 's/.*AppId=\([0-9]\+\).*/\1/p' | head -1)
+            running_game_id
 
-            if [[ "$current_game" != "2399420" ]]; then
+            if [[ "$game" != "2399420" ]]; then
                 break
             fi
 
