@@ -50,8 +50,8 @@ index=0
 
 for manifest in "$STEAM_DIR"/steamapps/appmanifest_*.acf; do
     if [ -f "$manifest" ]; then
-        # Extract app ID from filename (appmanifest_XXXXX.acf)
-        app_id=$(basename "$manifest" | sed 's/appmanifest_//;s/.acf//')
+        # Extract game ID from filename (appmanifest_XXXXX.acf)
+        game_id=$(basename "$manifest" | sed 's/appmanifest_//;s/.acf//')
 
         # Extract game name from manifest file
         game_name=$(grep -m1 '"name"' "$manifest" | awk -F'"' '{print $4}' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
@@ -64,7 +64,7 @@ for manifest in "$STEAM_DIR"/steamapps/appmanifest_*.acf; do
         # Index:
         if [ -n "$game_name" ]; then
             # Store in temporary file instead of arrays (more portable)
-            echo "$app_id|$game_name" >> /tmp/steam_games_$$
+            echo "$game_id|$game_name" >> /tmp/steam_games_$$
             index=$((index + 1))
         fi
     fi
@@ -104,75 +104,87 @@ fi
 
 # Display selected game
 selected_line=$(sed -n "$((selection + 1))p" /tmp/steam_games_$$)
-selected_id=$(echo "$selected_line" | awk -F'|' '{print $1}')
+game_id=$(echo "$selected_line" | awk -F'|' '{print $1}')
 selected_name=$(echo "$selected_line" | awk -F'|' '{print $2}')
 
 echo -e "${GREEN}You selected:${NC}"
-echo -e "${BLUE}ID:${NC} $selected_id"
+echo -e "${BLUE}ID:${NC} $game_id"
 echo -e "${BLUE}Name:${NC} $selected_name"
 echo
 
-# Extract the path for the Proton Version used by the selected game:
-PROTON_VERSION=$(cat "$STEAM_DIR/steamapps/compatdata/$selected_id/config_info" \
-    | grep pfx | cut -d/ -f7- | sed 's|/files/share/default_pfx/.*||')
+#Get Proton Version used by this game:
+pfx=$(grep default_pfx "$STEAM_DIR"/steamapps/compatdata/"$game_id"/config_info)
 
-# Extracted path looks like:
-# /compatibilitytools.d/GE-Proton10-34-LMU-hid_fixes
-# /Steam/steamapps/common/Proton Hotfix
-# Others, depending on what Proton is in use.
+# strip everything up to the Proton folder
+tmp="${pfx%/files/share/default_pfx/*}"
+
+# extract only the last path component
+PROTON_VERSION="${tmp##*/}"
 
 if [ -z "$PROTON_VERSION" ]; then
     echo -e "${RED}ERROR: Could not detect Proton version from config_info.${NC}"
     exit 1
 fi
 
-# Set the PROTON path variables to what the selected game uses:
-PROTON_DIR="$STEAM_DIR/$PROTON_VERSION"
-PROTON_WINE="$PROTON_DIR/files/bin/wine"
+check_game_proton_version() {
+case "$game_id" in
+    211500)   # R3
+        if [[ "$PROTON_VERSION" != *"Experimental"* ]]; then
+            echo -e "BIG WARNING: R3 was tested with ${GREEN}Proton Experimental${NC}, but you are using:${RED} $PROTON_VERSION"
+            echo -e "The script won't abort, but there is no guarantee this will work!${NC}"
+        else
+            echo -e "${GREEN}You are using a tested Proton/SimHUB version, very good! ("$PROTON_VERSION") ${NC}"
+        fi
 
-# Since we use winetricks:
-export WINEPREFIX="$STEAM_DIR/steamapps/compatdata/$selected_id/pfx"
-export STEAM_COMPAT_DATA_PATH="$STEAM_DIR/steamapps/compatdata/$selected_id"
+        ;;
 
-# Sometimes the used proton variable is empty, lets make sure to populate it with in-use Proton:
-export PROTON_VERSION=$(basename "$PROTON_DIR")
+    2399420)  # LMU
+        if [[ "$PROTON_VERSION" != *"GE"* ]] || [[ "$PROTON_VERSION" != *"hid_fixes"* ]]; then
+            echo -e "BIG WARNING: LMU was tested with ${GREEN}GE-Proton10-34-LMU-hid_fixes${NC}, but you are using:${RED} $PROTON_VERSION"
+            echo -e "The script won't abort, but there is no guarantee this will work!${NC}"
+        else
+            echo -e "${GREEN}You are using a tested Proton/SimHUB version, very good! ("$PROTON_VERSION") ${NC}"
+        fi
+        ;;
 
-# Normalize Proton Experimental naming
-if [ "$PROTON_VERSION" = "Proton - Experimental" ]; then
-    PROTON_VERSION="Proton Experimental"
-fi
+    3058630)  # AC EVO
+        if [[ "$PROTON_VERSION" != *"11"* ]]; then
+            echo -e "BIG WARNING: AC EVO was tested ${GREEN}Proton 11.0${NC}, but you are using:${RED} $PROTON_VERSION"
+            echo -e "The script won't abort, but there is no guarantee this will work!${NC}"
+        else
+            echo -e "${GREEN}You are using a tested Proton/SimHUB version, very good! ("$PROTON_VERSION") ${NC}"
+        fi
+        ;;
 
-get_game_proton_best_version() {
-    case "$selected_id" in
-        211500)   echo "Proton Experimental" ;; # R3
-        2399420)  echo "GE-Proton10-34-LMU-hid_fixes or later" ;; # LMU
-        3058630)  echo "Proton 11.0" ;; # AC EVO
-        365960)   echo "GE-Proton10-34 or later" ;; # rF2
-        244210)   echo "GE-Proton10-34 or later" ;; # AC1
-        *)        echo "Game not tested" ;;
-    esac
+    365960)   # rF2
+        if [[ "$PROTON_VERSION" != *"GE"* ]]; then
+            echo -e "BIG WARNING: rF2 was tested with ${GREEN}GE Proton${NC}, but you are using:${RED} $PROTON_VERSION"
+            echo -e "The script won't abort, but there is no guarantee this will work!${NC}"
+        else
+            echo -e "${GREEN}You are using a tested Proton/SimHUB version, very good! ("$PROTON_VERSION") ${NC}"
+        fi
+        ;;
+
+    244210)   # AC1
+        if [[ "$PROTON_VERSION" != *"GE"* ]]; then
+            echo -e "BIG WARNING: AC1 was tested with ${GREEN}GE Proton${NC}, but you are using:${RED} $PROTON_VERSION"
+            echo -e "The script won't abort, but there is no guarantee this will work!${NC}"
+        else
+            echo -e "${GREEN}You are using a tested Proton/SimHUB version, very good! ("$PROTON_VERSION") ${NC}"
+        fi
+        ;;
+
+    *)
+        echo "Unknown gameID: $game_id"
+        ;;
+esac
 }
 
-# Print the attention message
-echo -e "${YELLOW}################### ATTENTION ##################${NC}"
-echo -e "${BLUE}PROTON_VERSION:${NC} $PROTON_VERSION"
-echo -e "${BLUE}GAME REQUIRES:${NC} $(get_game_proton_best_version)"
-echo -e "${YELLOW}#### MAKE SURE GAME IS USING THE REQUIRED #####${NC}"
-echo
-echo -e "${GREEN}IF BOTH LINES ARE SIMILAR/EQUAL NO ACTION IS NEEDED.${NC}"
-echo -e "${GREEN}IF THERE IS A MISMATCH CHANGE THE GAME USED PROTON ON THE STEAM UI.${NC}"
-
-echo
-echo -e "${CYAN}PROTON_DIR:${NC} $PROTON_DIR"
-echo -e "${CYAN}PROTON_WINE:${NC} $PROTON_WINE"
-echo -e "${CYAN}GAME PREFIX:${NC} $WINEPREFIX"
-echo
-
 # Check if game is running
-if pgrep -f "$selected_id" > /dev/null 2>&1; then
+if pgrep -f "$game_id" > /dev/null 2>&1; then
     echo
     echo -e "${RED}ERROR: The game is currently running!${NC}"
-    echo "Please close the game before installing SimHub or dotnet48."
+     "Please close the game before installing SimHub or dotnet48."
     echo
     printf "${MAGENTA}Press Enter to exit...${NC}"
     read -r dummy
@@ -183,9 +195,9 @@ fi
 echo -e "${GREEN}Game is not running, continuing...${NC}"
 
 # Check if game has been run at least once (Proton prefix exists)
-PROTON_PREFIX="$STEAM_DIR/steamapps/compatdata/$selected_id/pfx"
+WINEPREFIX="$STEAM_DIR/steamapps/compatdata/$game_id/pfx"
 
-if [ ! -d "$PROTON_PREFIX" ]; then
+if [ ! -d "$WINEPREFIX" ]; then
     echo
     echo -e "${RED}ERROR: Game has never been run before!${NC}"
     echo "Please run the game at least once and close it."
@@ -198,6 +210,9 @@ if [ ! -d "$PROTON_PREFIX" ]; then
 fi
 
 echo -e "${GREEN}Game prefix found, continuing...${NC}"
+echo
+
+check_game_proton_version
 echo
 
 ## .NET:
@@ -336,9 +351,7 @@ echo -e "${CYAN}==========================================${NC}"
 echo
 echo -e "${GREEN}1. Make sure to uncheck: Install Microsoft .Net and C++ redistributable${NC}"
 echo
-echo -e "${GREEN}2. Do not run SimHub from the installer at the end, uncheck that option.${NC}"
-echo -e "${RED}   Otherwise it locks the game prefix and you won't be able to start the game via Steam.${NC}"
-echo -e "${GREEN}   - In case you did run it, close it and the game should start.${NC}"
+echo -e "${GREEN}2. If you run SimHUB after install game cannot start due locked prefix, close SimHUB, start game, start SimHUB${NC}"
 echo
 echo -e "${YELLOW}If you have more games, the created menu entries are unreliable due to different game prefixes.${NC}"
 echo -e "${GREEN}Run it with the other provided script (runsimhub2.sh), it auto-detects the running game and proton version.${NC}"
@@ -350,9 +363,11 @@ echo
 
 echo -e "${CYAN}Installing SimHub... If rundll32.exe errors appear, you can ignore them by clicking No.${NC}"
 
-# Run the installer
+#Seems setting windows11 is sometimes required, probable depends on proton version:
 WINEPREFIX="$WINEPREFIX" winetricks -q win11 > /dev/null 2>&1
-"$PROTON_WINE" "$SIMHUB_SETUP_EXE" > /dev/null 2>&1
+
+# Run the SimHUB installer
+protontricks-launch --appid $game_id "$SIMHUB_SETUP_EXE"
 
 if [ $? -eq 0 ]; then
     echo -e "${GREEN}SimHub installation completed successfully!${NC}"
@@ -365,8 +380,8 @@ if [ $? -eq 0 ]; then
     # Cleanup SimHub downloaded files
     rm -rf "$TEMP_DIR"
 
-    # Check if selected_id requires additional configuration
-    if [ "$selected_id" = "2399420" ] || [ "$selected_id" = "211500" ]; then
+    # Check if game_id requires additional configuration
+    if [ "$game_id" = "2399420" ] || [ "$game_id" = "211500" ]; then
         echo -e "${GREEN}No additional SimHub configuration is required for this game.${NC}"
     else
         echo -e "${YELLOW}You may need to configure SimHub for this game.${NC}"
