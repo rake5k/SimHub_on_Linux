@@ -7,7 +7,7 @@
 - LMU -> [GE-Proton10-34-LMU-hid_fixes](https://github.com/srounce/proton-ge-custom/releases/tag/GE-Proton10-34-LMU-hid_fixes-vr) (or later) Add then Select in the Steam Interface
 - rFactor2 and AC1 -> [GE-Proton10-34](https://github.com/GloriousEggroll/proton-ge-custom/releases/tag/GE-Proton10-34) (or later) Add then Select in the Steam Interface
 - AC EVO ->  Proton 11.0 (Select in the Steam Interface)
-- Raceroom -> Proton Experimental (Select in the Steam Interface)
+- Raceroom -> Proton Experimental or 11.0 (Select in the Steam Interface)
 
 ![Select Steam Game](screenshot.png)
 
