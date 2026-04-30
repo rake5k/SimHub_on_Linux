@@ -375,6 +375,7 @@ if [ $? -eq 0 ]; then
     echo
     echo -e "${YELLOW}To run it later with automatic game detection, run the other script called runsimhub2.sh${NC}"
     echo "You can add the runsimhub2.sh as a menu launcher"
+    echo
     echo -e "${YELLOW}If in the future SimHUB randomly fails to start, run this script again and re-install dotnet48, some game/steam updates mess it.${NC}"
 
     # Cleanup SimHub downloaded files
@@ -382,17 +383,14 @@ if [ $? -eq 0 ]; then
 
     # Check if game_id requires additional configuration
     if [ "$game_id" = "211500" ]; then
+        echo
         echo -e "${GREEN}No additional SimHub configuration is required for this game.${NC}"
     fi
     
     if [ "$game_id" = "2399420" ]; then
+        echo
         echo -e "${GREEN}run runsimhub2.sh and it will do all LMU need configs.${NC}"
     fi
-    
-    echo -e "${YELLOW}You may need to configure SimHub for this game.${NC}"
-    echo "In most cases, this can be done directly via SimHub:"
-    echo
-    echo -e "${GREEN}Game Config option -> Configure Game Now.${NC}"
 else
     echo
     echo -e "${RED}SimHub installation failed or cancelled${NC}"
