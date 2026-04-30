@@ -14,11 +14,9 @@ if pgrep -f "SimHubWPF.exe" >/dev/null; then
 fi
 
 # If the game is running, get game Id
-
 running_game_id() {
     game=$(ps -eo args | grep -F "SteamLaunch AppId=" | grep -v grep \
         | sed -n 's/.*AppId=\([0-9]\+\).*/\1/p' | head -1)
-
 }
 
 running_game_id
@@ -108,7 +106,7 @@ if [[ "$game" = "2399420" ]]; then
             fi
 
             echo ""
-            echo "⚠  You have missing telemetry plugins."
+            echo "⚠ You have missing telemetry plugins."
             echo "LMU must be closed before we can add the missing plugins."
             echo "This is only needed on the first run."
             echo ""
@@ -213,11 +211,12 @@ if [[ "$game" = "2399420" ]]; then
 fi
 
 ###############################################
-# Launch SimHub normally
+# Launch SimHub normally for all games
 ###############################################
 echo "Launching SimHub..."
 export PYTHONWARNINGS="ignore::UserWarning"
 protontricks-launch --appid "$game" "$SIMHUB_EXE" >/dev/null 2>&1 &
+echo "SimHub has been launched!"
 
 ###############################################
 # RaceRoom Dash support (AppId 211500)
@@ -261,11 +260,6 @@ if [[ "$game" = "211500" ]]; then
 
     sleep 2
 
-    echo "Running Dash..."
+    echo "Launching dash.exe, don't forget the SealHUD entry in the Game launcher in Steam."
     protontricks-launch --appid "$game" "$DASH_EXE" 2>&1 | grep -v -i 'fixme\|W:'
-else
-    echo "SimHub has been launched."
 fi
-
-echo ""
-echo "Done!"
