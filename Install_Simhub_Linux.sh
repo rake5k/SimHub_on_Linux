@@ -148,6 +148,7 @@ get_game_proton_best_version() {
         2399420)  echo "GE-Proton10-34-LMU-hid_fixes or later" ;; # LMU
         3058630)  echo "Proton 11.0" ;; # AC EVO
         365960)   echo "GE-Proton10-34 or later" ;; # rF2
+        244210)   echo "GE-Proton10-34 or later" ;; # AC1
         *)        echo "Game not tested" ;;
     esac
 }
