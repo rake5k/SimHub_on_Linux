@@ -381,14 +381,18 @@ if [ $? -eq 0 ]; then
     rm -rf "$TEMP_DIR"
 
     # Check if game_id requires additional configuration
-    if [ "$game_id" = "2399420" ] || [ "$game_id" = "211500" ]; then
+    if [ "$game_id" = "211500" ]; then
         echo -e "${GREEN}No additional SimHub configuration is required for this game.${NC}"
-    else
-        echo -e "${YELLOW}You may need to configure SimHub for this game.${NC}"
-        echo "In most cases, this can be done directly via SimHub:"
-        echo
-        echo -e "${GREEN}Game Config option -> Configure Game Now.${NC}"
     fi
+    
+    if [ "$game_id" = "2399420" ]; then
+        echo -e "${GREEN}run runsimhub2.sh and it will do all LMU need configs.${NC}"
+    fi
+    
+    echo -e "${YELLOW}You may need to configure SimHub for this game.${NC}"
+    echo "In most cases, this can be done directly via SimHub:"
+    echo
+    echo -e "${GREEN}Game Config option -> Configure Game Now.${NC}"
 else
     echo
     echo -e "${RED}SimHub installation failed or cancelled${NC}"
