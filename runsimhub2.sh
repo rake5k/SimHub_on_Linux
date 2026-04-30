@@ -261,5 +261,5 @@ if [[ "$game" = "211500" ]]; then
     sleep 2
 
     echo "Launching dash.exe, don't forget the SealHUD entry in the Game launcher in Steam."
-    protontricks-launch --appid "$game" "$DASH_EXE" 2>&1 | grep -v -i 'fixme\|W:'
+    protontricks-launch --appid "$game" "$DASH_EXE" >/dev/null 2>&1
 fi
