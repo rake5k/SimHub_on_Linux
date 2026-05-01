@@ -1,6 +1,5 @@
 - A bash script to install SimHub and it's dotnet48 dependency.
 - Works for most games. Even LMU custom Proton GE.
-- There is also a branch here that installs CrewChief.
 - You never have to run any of this as root. Do not run as root, this is Linux :)
 
 ## I highly recommend you use the bellow recommended Proton per game, SimHUB installation in other versions usually fails due to dotnet incompatibilities:
@@ -32,7 +31,7 @@
 ```bash
 git clone https://github.com/srlemke/SimHub_on_Linux.git
 cd SimHub_on_Linux/
-chmod +x Install_Simhub_Linux.sh runsimhub2.sh
+chmod +x Install_Simhub_Linux.sh runsimhub2.sh shared_functions.sh
 ./Install_Simhub_Linux.sh
 ./runsimhub2.sh
 ```
