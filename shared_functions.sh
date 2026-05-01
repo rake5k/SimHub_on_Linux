@@ -122,6 +122,7 @@ fi
 
 # Check/populate if game has been run at least once (WINEPREFIX exists)
 WINEPREFIX="$STEAM_DIR/steamapps/compatdata/$game_id/pfx"
+export WINEPREFIX
 
 if [ ! -d "$WINEPREFIX" ]; then
     echo
@@ -155,7 +156,7 @@ dotnet_installed() {
         fi
     else
         # Ask if user wants to install dotnet48
-        printf "${YELLOW}Install dotnet48 for $selected_name? (y/N): ${NC}"
+        printf "${YELLOW}Install dotnet48 for $selected_name? (Required) (y/N): ${NC}"
         read -r answer
         
         if [ "$answer" = "y" ] || [ "$answer" = "Y" ]; then
@@ -168,17 +169,20 @@ dotnet_installed() {
 
 install_dotnet() {
     echo -e "${CYAN}Installing dotnet48...${NC}"
-    echo "This may take 5 minutes or more depending on your hardware."
     echo "Please be patient and do not interrupt the process."
-    echo
-    echo -e "${YELLOW}NOTE:${NC} A popup may appear saying 'Failed to start rundll32.exe'."
-    echo "This is normal and can be safely ignored. Clink No on all"
-    echo
-    "$WINE" reg delete "HKLM\\Software\\Microsoft\\NET Framework Setup\\NDP\\v4" /f >/dev/null 2>&1 || true
-    "$WINE" reg delete "HKLM\\Software\\Wow6432Node\\Microsoft\\NET Framework Setup\\NDP\\v4" /f >/dev/null 2>&1 || true
+    wine reg delete "HKLM\\Software\\Microsoft\\NET Framework Setup\\NDP\\v4" /f >/dev/null 2>&1 || true
+    wine reg delete "HKLM\\Software\\Wow6432Node\\Microsoft\\NET Framework Setup\\NDP\\v4" /f >/dev/null 2>&1 || true
     echo -e "${CYAN}Cleared old invalid .NET registry entries. Now running dotnet48 installer, wait... (~5 min)${NC}"
-    WINEPREFIX="$WINEPREFIX" winetricks -q -f dotnet48 > /dev/null 2>&1
+    winetricks -q -f dotnet48 > /dev/null 2>&1
     install_result=$?
+    
+    if [ "$install_result" -eq 0 ]; then
+        echo -e "${GREEN}.NET 4.8 installed successfully.${NC}"
+    else
+        echo -e "${RED}.NET 4.8 installation failed (exit code $install_result).${NC}"
+        echo "This usually means Wine or winetricks hit an error."
+        echo "You may need to rerun the script or check your Wine prefix."
+    fi
 }
 
 #Identifies Proton used by game, suggests changes if needed:
@@ -213,7 +217,7 @@ case "$game_id" in
                         "11.0" ;;
     2399420)  check_proton "LMU" \
                         "GE-Proton10-34-LMU-hid_fixes" ;;
-    3058630)  check_proton "AC EVO" \
+    3058630)  check_proton "AC EVO (Unreliable ATM)" \
                         "11.0" ;;
     365960)   check_proton "rFactor 2" \
                         "GE-Proton10" ;;
