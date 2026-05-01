@@ -26,9 +26,12 @@
 ```bash
 git clone https://github.com/srlemke/SimHub_on_Linux.git
 cd SimHub_on_Linux/
-chmod +x Install_Simhub_Linux.sh runsimhub2.sh Install_CrewChief_Linux.sh runcrewchief.sh shared_functions.sh
+chmod +x *.sh
+
+#To Install and run SimHUB:
 ./Install_Simhub_Linux.sh
 ./runsimhub2.sh
+
 #To Install and run CrewChief:
 ./Install_CrewChief_Linux.sh
 ./runcrewchief.sh
