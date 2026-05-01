@@ -1,6 +1,8 @@
-- A bash script to install SimHub, CrewChief and it's dotnet48 dependency.
-- Offers to install ProtonGE and Custom LMU Proton if not present. (Recommended to use Proton-GE, much better .NET compatibility)
-- You never have to run any of this as root. Do not run as root, this is Linux :)
+
+🚀 A bash script to install [SimHub](https://www.simhubdash.com/), [CrewChief](https://thecrewchief.org/) and its dotnet48 dependency.  
+💡 Offers to install [Proton-GE](https://github.com/GloriousEggroll/proton-ge-custom/releases/tag/GE-Proton10-34) and [Custom LMU Proton‑GE](https://github.com/JacKeTUs/proton-ge-custom/releases) if not present.  
+📦 I recommend [Proton-GE](https://github.com/GloriousEggroll/proton-ge-custom/releases/tag/GE-Proton10-34) for it's .NET compatibility.  
+🐧 You never have to run any command as root. Do not run as root, this is Linux :)  
 
 ![Select Steam Game](Screenshot_2026-05-01_16-25-15.png)
 
@@ -16,8 +18,10 @@
 - `Checks if game has been run before to confirm a populated game prefix exists`
 - `Installs dotnet48 if not already present`
 - `Downloads and installs latest SimHub`
+- `Downloads and installs latest CrewChief`
 - `Gives instructions on what SimHub components to install`
 - `Detects installed game used proton version, even LMU custom Proton-GE`
+- `Can install LMU custom Proton (Required for LMU)`
 - `Automatically adds plugins and configures LMU`
 - `Automatically adds dash.exe for RaceRomm SealHUD usage`
 - `Offer installation of Proton GE, which has much better .NET compatibility`
@@ -38,6 +42,8 @@ chmod +x *.sh
 ```
 
 - You probably can add runsimhub2.sh command to a menu laucher with icon.
+- You probably can add runcrewchief.sh command to a menu laucher with icon.
+
 
 ## Running:
 ![Select Steam Game](running.png)
