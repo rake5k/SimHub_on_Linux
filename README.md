@@ -2,7 +2,7 @@
 - Offers to install ProtonGE and Custom LMU Proton if not present. (Recommended to use Proton-GE, much better .NET compatibility)
 - You never have to run any of this as root. Do not run as root, this is Linux :)
 
-![Select Steam Game](screenshot.png)
+![Select Steam Game](Screenshot_2026-05-01_16-25-15.png)
 
 ## Requirements, those are automatically checked:
 
