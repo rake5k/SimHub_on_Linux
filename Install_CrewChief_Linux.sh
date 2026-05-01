@@ -16,7 +16,7 @@ dotnet_installed
 # CREWCHIEF INSTALLER
 ###########################################
 echo
-printf "${YELLOW}Install CrewChief for "$selected_name"? (y/N): ${NC}"
+printf "${YELLOW}Install CrewChief for $selected_name? (y/N): ${NC}"
 read -r install_cc
 
 if [ "$install_cc" = "y" ] || [ "$install_cc" = "Y" ]; then
