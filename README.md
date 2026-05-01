@@ -1,4 +1,4 @@
-- A bash script to install SimHub and it's dotnet48 dependency.
+- A bash script to install SimHub, CrewChief and it's dotnet48 dependency.
 - Offers to install ProtonGE and Custom LMU Proton if not present. (Recommended to use Proton-GE, much better .NET compatibility)
 - You never have to run any of this as root. Do not run as root, this is Linux :)
 
@@ -26,9 +26,12 @@
 ```bash
 git clone https://github.com/srlemke/SimHub_on_Linux.git
 cd SimHub_on_Linux/
-chmod +x Install_Simhub_Linux.sh runsimhub2.sh shared_functions.sh
+chmod +x Install_Simhub_Linux.sh runsimhub2.sh Install_CrewChief_Linux.sh runcrewchief.sh shared_functions.sh
 ./Install_Simhub_Linux.sh
 ./runsimhub2.sh
+#To Install and run CrewChief:
+./Install_CrewChief_Linux.sh
+./runcrewchief.sh
 ```
 
 - You probably can add runsimhub2.sh command to a menu laucher with icon.
