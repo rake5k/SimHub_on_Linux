@@ -120,6 +120,18 @@ if [ -z "$PROTON_VERSION" ]; then
     exit 1
 fi
 
+# Check if game is running
+if pgrep -f "$game_id" > /dev/null 2>&1; then
+    echo
+    echo -e "${RED}ERROR: The game is currently running!${NC}"
+     "Please close the game before installing SimHub or dotnet48."
+    echo
+    printf "${MAGENTA}Press Enter to exit...${NC}"
+    read -r dummy
+    rm -f /tmp/steam_games_$$
+    exit 1
+fi
+
 # Check/populate if game has been run at least once (WINEPREFIX exists)
 WINEPREFIX="$STEAM_DIR/steamapps/compatdata/$game_id/pfx"
 export WINEPREFIX
