@@ -1,5 +1,4 @@
 #!/bin/sh
-#testing phase
 
 #Run the populate script:
 source ./shared_functions.sh
