@@ -1,5 +1,4 @@
 #!/bin/sh
-#testing phase
 
 #Run the populate script:
 source ./shared_functions.sh
@@ -17,13 +16,8 @@ dotnet_installed
 # CREWCHIEF INSTALLER
 ###########################################
 echo
-printf "Install CrewChief for $selected_name? (Y/n):"
+printf "${YELLOW}Install CrewChief for $selected_name? (y/N): ${NC}"
 read -r install_cc
-
-# Default to yes if empty
-if [ -z "$install_cc" ]; then
-    install_cc="y"
-fi
 
 if [ "$install_cc" = "y" ] || [ "$install_cc" = "Y" ]; then
     echo "Downloading CrewChief..."
