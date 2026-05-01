@@ -6,6 +6,15 @@ version=9.11.11
 #Run the populate script:
 source ./shared_functions.sh
 
+#Check if tools like protontricks are installed:
+check_tools
+
+#Parse and list installed games:
+installed_games_detection
+
+#Check .NET installation for selected game
+dotnet_installed
+
 # Ask if user wants to install SimHub
 echo
 printf "${YELLOW}Install SimHub-$version for $selected_name? (y/N): ${NC}"
@@ -33,9 +42,7 @@ fi
 # Check if download was successful
 if [ ! -f "SimHub.$version.zip" ]; then
     echo -e "${RED}Error: Failed to download SimHub!${NC}"
-    cd /
-    rm -rf "$TEMP_DIR"
-    rm -f /tmp/steam_games_$$
+    clean_tmp
     exit 1
 fi
 
@@ -46,9 +53,7 @@ if command -v unzip > /dev/null 2>&1; then
     unzip -q "SimHub.$version.zip"
 else
     echo -e "${RED}Error: unzip not found!${NC}"
-    cd /
-    rm -rf "$TEMP_DIR"
-    rm -f /tmp/steam_games_$$
+    clean_tmp
     exit 1
 fi
 
@@ -57,9 +62,7 @@ SIMHUB_SETUP_EXE=$(find "$TEMP_DIR" -name "SimHubSetup_*.exe" -type f)
 
 if [ -z "$SIMHUB_SETUP_EXE" ]; then
     echo -e "${RED}Error: SimHubSetup_*.exe not found in extracted files!${NC}"
-    cd /
-    rm -rf "$TEMP_DIR"
-    rm -f /tmp/steam_games_$$
+    clean_tmp
     exit 1
 fi
 
@@ -74,9 +77,9 @@ echo
 printf "${MAGENTA}Press Enter to start the SimHub installer...${NC}"
 read -r dummy
 
-echo -e "Installing SimHub... If ${RED}rundll32.exe${NC} error popups appear, you can ignore them by clicking No - Usually 4x"
+echo -e "Installing SimHub... If rundll32.exe popups appear click No"
 #Seems setting windows11 is sometimes required, probable depends on proton version:
-WINEPREFIX="$WINEPREFIX" winetricks -q win11 >/dev/null 2>&1;
+#protontricks "$game_id" -q win11 >/dev/null 2>&1;
 
 # Run the SimHUB installer
 if protontricks-launch --appid "$game_id" "$SIMHUB_SETUP_EXE" >/dev/null 2>&1; then
@@ -95,15 +98,16 @@ if protontricks-launch --appid "$game_id" "$SIMHUB_SETUP_EXE" >/dev/null 2>&1; t
     
     if [ "$game_id" = "2399420" ]; then
         echo
-        echo -e "${GREEN}run runsimhub2.sh and it will do all LMU needed configs.${NC}"
+        echo -e "run ${GREEN} runsimhub2.sh${NC} and it will do all LMU needed configs."
     fi
 else
     echo
     echo -e "${RED}SimHub installation failed or cancelled${NC}"
 fi
 
-# Cleanup SimHub downloaded files
-rm -rf "$TEMP_DIR"
+clean_tmp() {
+    rm -rf "$TEMP_DIR"
+    rm -f /tmp/steam_games_$$
+}
 
-# Cleanup Global
-rm -f /tmp/steam_games_$$
+clean_tmp
