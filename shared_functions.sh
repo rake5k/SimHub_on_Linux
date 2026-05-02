@@ -325,7 +325,7 @@ test_proton() {
         244210)   match_proton "AC1" \
                             "GE-Proton10" ;;
         *)
-    echo -e "${YELLOW}Unknown gameID:${NC} $game_id"
+    echo -e "${YELLOW}Untested game, GE-Proton10 is the most comptible usually.${NC}"
     ;;
 esac
 }
