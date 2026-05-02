@@ -40,6 +40,16 @@ chmod +x *.sh
 ./Install_CrewChief_Linux.sh
 ./runcrewchief.sh
 ```
+Other Usage options:
+```bash
+#List installed games and respective ID
+./runsimhub2.sh -l
+./runcrewchief.sh -l
+
+#Run SimHUB/CrewChief for the game without starting the game - This examples uses LMU ID
+./runsimhub2.sh 2399420 
+./runcrewchief.sh 2399420 
+```
 
 - You probably can add runsimhub2.sh command to a menu laucher with icon.
 - You probably can add runcrewchief.sh command to a menu laucher with icon.
