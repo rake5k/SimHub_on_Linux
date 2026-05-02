@@ -71,7 +71,7 @@ echo -e "${CYAN}==========================================${NC}"
 echo -e "${RED}IMPORTANT TIPS BEFORE SIMHUB INSTALLATION${NC}"
 echo -e "${CYAN}==========================================${NC}"
 echo "1. On the Installer, make sure to uncheck: Install Microsoft .Net and C++ redistributable"
-echo "2. If you run SimHUB after install game cannot start due locked prefix, close SimHUB, start game, start SimHUB."
+echo "2. If you run SimHUB from the installer the game wont start due locked prefix: Close SimHUB, start the game, start SimHUB."
 echo -e "${CYAN}==========================================${NC}"
 echo
 printf "${MAGENTA}Press Enter to start the SimHub installer...${NC}"
