@@ -72,6 +72,7 @@ echo -e "${RED}IMPORTANT TIPS BEFORE SIMHUB INSTALLATION${NC}"
 echo -e "${CYAN}==========================================${NC}"
 echo "1. On the Installer, make sure to uncheck: Install Microsoft .Net and C++ redistributable"
 echo "2. If you run SimHUB from the installer the game wont start due locked prefix: Close SimHUB, start the game, start SimHUB."
+echo "3. Created Menu entries are unreliable, use the runsimhub.sh script to run it with automatic detection."
 echo -e "${CYAN}==========================================${NC}"
 echo
 printf "${MAGENTA}Press Enter to start the SimHub installer...${NC}"
@@ -85,9 +86,7 @@ echo -e "Installing SimHub... If rundll32.exe popups appear click No"
 if protontricks-launch --appid "$game_id" "$SIMHUB_SETUP_EXE" >/dev/null 2>&1; then
     echo -e "${GREEN}SimHub installation completed successfully!${NC}"
     echo
-    echo -e "Tip: To run it later with automatic game detection, run the other script called ${GREEN}runsimhub2.sh${NC}"
     echo -e "Tip: You can add the ${GREEN}runsimhub2.sh${NC} as a menu launcher."
-    echo "Tip: If you have more games, the created menu entries are unreliable due to different game prefixes."
     echo "Tip: If in the future, after game updates, SimHUB fails to start, run this script again and re-install dotnet48 only."
     
     # Check if game_id requires additional configuration
