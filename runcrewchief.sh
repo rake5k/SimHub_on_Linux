@@ -36,7 +36,7 @@ fi
 ###############################################
 echo "Launching CrewChief..."
 export PYTHONWARNINGS="ignore::UserWarning"
-protontricks-launch --appid "$game" "$CrewChief_EXE" >/dev/null 2>&1 &
+steam-run protontricks-launch --appid "$game" "$CrewChief_EXE" >/dev/null 2>&1 &
 echo "CrewChief has been launched!"
 
 #If running Game is Raceroom launch dash.exe for SealHUD

@@ -596,6 +596,6 @@ check_Raceroom() {
         sleep 2
 
         echo "Launching dash.exe, don't forget the SealHUD entry in the Game launcher in Steam."
-        WINEDEBUG=-all protontricks-launch --appid "$game" "$DASH_EXE" 2>/dev/null
+        WINEDEBUG=-all steam-run protontricks-launch --appid "$game" "$DASH_EXE" 2>/dev/null
     fi
 }

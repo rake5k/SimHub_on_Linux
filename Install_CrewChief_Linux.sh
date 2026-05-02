@@ -57,7 +57,7 @@ if [ "$install_cc" = "y" ] || [ "$install_cc" = "Y" ]; then
     echo -e "${RED}Make sure to press the update CrewChief Option! - This is effectivelly the installer!${NC}"
 
     #Running the installer:
-    protontricks-launch --appid "$game_id" "$CC_EXE" > /dev/null 2>&1
+    steam_run protontricks-launch --appid "$game_id" "$CC_EXE" > /dev/null 2>&1
 
     rm -rf "$TEMP_DIR"
 fi
