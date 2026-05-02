@@ -1,5 +1,5 @@
 
-🚀 A bash script to install and run [SimHub](https://www.simhubdash.com/), [CrewChief](https://thecrewchief.org/) and its dotnet48 dependency.  
+🚀 A shell script to install and run [SimHub](https://www.simhubdash.com/), [CrewChief](https://thecrewchief.org/) and its dotnet48 dependency.  
 💡 Offers to install [Proton-GE](https://github.com/GloriousEggroll/proton-ge-custom/releases/tag/GE-Proton10-34) and [Custom LMU Proton‑GE](https://github.com/JacKeTUs/proton-ge-custom/releases) if not present.  
 📦 I recommend [Proton-GE](https://github.com/GloriousEggroll/proton-ge-custom/releases/tag/GE-Proton10-34) for it's .NET compatibility.  
 🐧 You never have to run any command as root. Do not run as root, this is Linux :)  
