@@ -24,7 +24,7 @@ if [ "$install_simhub" = "y" ] || [ "$install_simhub" = "Y" ]; then
     echo -e "${CYAN}Downloading SimHub-$version...${NC}"
 
     # Create temporary directory for download
-    TEMP_DIR="/tmp/simhub_install_$$"
+    TEMP_DIR="$HOME/.cache/simhub_install_$$"
     mkdir -p "$TEMP_DIR"
     cd "$TEMP_DIR"
 

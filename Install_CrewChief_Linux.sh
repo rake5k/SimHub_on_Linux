@@ -21,7 +21,7 @@ read -r install_cc
 
 if [ "$install_cc" = "y" ] || [ "$install_cc" = "Y" ]; then
     echo "Downloading CrewChief..."
-    TEMP_DIR="/tmp/crewchief_install_$$"
+    TEMP_DIR="$HOME/.cache/crewchief_install_$$"
     mkdir -p "$TEMP_DIR"
     cd "$TEMP_DIR"
 

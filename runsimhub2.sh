@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 #Run the populate script:
 source ./shared_functions.sh
