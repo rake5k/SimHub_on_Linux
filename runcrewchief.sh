@@ -3,8 +3,20 @@
 #Run the populate script:
 source ./shared_functions.sh
 
-#Get ID of running game:
-running_game_id
+#List installed games:
+if [[ "$1" == "-l" ]]; then
+    protontricks -l |grep -vi Protontricks
+    exit 0
+fi
+
+#Get ID of running game, adds the ability to run the without the game running.
+if [[ -n "$1" ]]; then
+    # User provided an AppID → no need to auto-detect
+    game="$1"
+else
+    # No AppID provided → detect running game
+    running_game_id
+fi
 
 #If running Game is LMU check if all configs are done:
 check_LMU
