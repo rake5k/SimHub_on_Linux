@@ -279,7 +279,8 @@ dotnet_installed() {
 install_dotnet() {
     echo -e "${CYAN}Installing dotnet48...${NC}"
     echo "Please be patient and do not interrupt the process. (~5min)"
-    protontricks "$game_id" -q --force dotnet48 > /dev/null 2>&1
+    mkdir -p ./log
+    protontricks "$game_id" -q --force dotnet48 > ./log/install_dotnet.log 2>&1
     install_result=$?
     
     
