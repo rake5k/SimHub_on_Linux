@@ -60,9 +60,17 @@ Responsibilities, in order:
    exit 3.
 4. Discover the wine binary. Try candidates in order, stop at first that
    works:
-   - `protontricks-launch --no-bwrap --appid 211500`,
    - `$STEAM_COMPAT_TOOL_PATHS`-derived `wine64`,
    - hardcoded `$HOME/.local/share/Steam/compatibilitytools.d/GE-Proton10-34/files/bin/wine64`.
+
+   `protontricks-launch` is deliberately not a candidate: it is a Nix-store
+   binary, and inside the Steam Runtime container `LD_LIBRARY_PATH` makes its
+   Nix bash resolve the runtime's older glibc, failing with
+   `symbol lookup error: __nptl_change_stack_perm, version GLIBC_PRIVATE`
+   (observed in the 2026-05-31 acceptance test). Proton's own `wine64` is
+   built for the runtime and, with `WINEPREFIX` set, connects to the running
+   wineserver. Children are launched with `LD_PRELOAD=` to drop the 32-bit
+   `gameoverlayrenderer.so` that otherwise floods the log.
 
    Log which candidate won. If none works, log and exit 4.
 5. For each of:
