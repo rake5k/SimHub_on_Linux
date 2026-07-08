@@ -46,6 +46,25 @@ fi
 WINEPREFIX="$STEAM_COMPAT_DATA_PATH/pfx"
 log "WINEPREFIX=$WINEPREFIX"
 
+# --- 2a. Ensure R3E-safe mscoree BEFORE the game starts -------------------------
+# R3E's VMProtect launcher refuses to start when a native MS mscoree.dll sits
+# in system32 (even with no DllOverride). The game has not started yet at this
+# point, so put GE-Proton's builtin back in case a previous session left the
+# native one in place (see section 4 for the full story).
+NET_STASH="$HOME/.cache/simhub-on-linux/native-mscoree"
+ensure_builtin_mscoree() {
+    local arch dir src dst
+    for arch in x64 x86; do
+        [[ "$arch" == x64 ]] && dir=system32 || dir=syswow64
+        src="$NET_STASH/mscoree.dll.ge-builtin.$arch"
+        dst="$WINEPREFIX/drive_c/windows/$dir/mscoree.dll"
+        if [[ -f "$src" ]] && ! cmp -s "$src" "$dst" 2>/dev/null; then
+            cp -f "$src" "$dst" && log "restored GE builtin mscoree ($dir)"
+        fi
+    done
+}
+ensure_builtin_mscoree
+
 # --- 2. Wait for wineserver socket --------------------------------------------
 log "waiting for wineserver socket in /tmp/.wine-1000/ (up to 60s)..."
 socket=""
@@ -63,21 +82,28 @@ log "wineserver socket found: $socket"
 # --- 2b. Wait for R3E (RRRE64.exe) to be running ------------------------------
 # The wineserver socket appears early, before the game itself starts. Launching
 # apps into R3E's wineserver *during* the game's VMProtect startup prevents the
-# game from starting at all. Match the process comm name, NOT the command line:
-# Steam's reaper/proton wrapper has RRRE64.exe in its argv long before the
-# actual wine game process (comm "RRRE64.exe") exists.
-game_running() {
-    local p
-    for p in /proc/[0-9]*/comm; do
-        [[ "$(cat "$p" 2>/dev/null)" == RRRE64* ]] && return 0
+# game from starting at all. Detection: a wine process whose argv[0] is the
+# game exe. Do NOT match comm (R3E's CEF frontend renames its main thread to
+# "MainThread", so comm is never "RRRE64.exe") and do NOT pgrep -f the whole
+# cmdline (Steam's reaper/proton wrappers carry RRRE64.exe in their argv long
+# before the game exists) — requiring exe=wine + argv[0]=game excludes both.
+wine_proc_running() { # <exe basename, case-insensitive>
+    local want d exe arg0
+    want="${1,,}"
+    for d in /proc/[0-9]*; do
+        exe=$(readlink "$d/exe" 2>/dev/null) || continue
+        case "$exe" in *Proton*|*/wine*) ;; *) continue ;; esac
+        IFS= read -r -d '' arg0 < "$d/cmdline" 2>/dev/null || continue
+        case "${arg0,,}" in *"$want") return 0 ;; esac
     done
     return 1
 }
-log "waiting for RRRE64.exe process (comm match, up to 240s)..."
-game_deadline=$(( $(date +%s) + 240 ))
+game_running() { wine_proc_running "rrre64.exe"; }
+log "waiting for RRRE64.exe process (comm match, up to 600s)..."
+game_deadline=$(( $(date +%s) + 600 ))
 until game_running; do
     if [[ $(date +%s) -ge $game_deadline ]]; then
-        log "FATAL: RRRE64.exe not seen after 240s; not launching helpers"
+        log "FATAL: RRRE64.exe not seen after 600s; not launching helpers"
         exit 5
     fi
     sleep 2
@@ -117,15 +143,18 @@ fi
 log "wine launcher: ${wine_launcher_cmd[*]} (strategy: $wine_strategy)"
 
 # --- 4. Restore native .NET files ---------------------------------------------
-# CrewChief and dash.exe need the real .NET CLR (wine-mono breaks them). The
-# native mscoree.dll shim lives in EACH APP'S OWN DIRECTORY, selected via
-# per-app HKCU\AppDefaults\<exe>\DllOverrides mscoree=native,builtin (wine
-# searches the app dir first for native dlls). NEVER put the native mscoree in
-# system32: R3E's VMProtect launcher stops starting when it is there, even
-# without any override. system32 must keep GE-Proton's builtin.
+# CrewChief and dash.exe need the real .NET CLR (wine-mono's config system
+# fails to initialize -> apps self-exit). Wine loads mscoree by explicit
+# system32 path, so an app-dir native mscoree is NEVER picked up (proven via
+# WINEDEBUG=+loaddll) — the native dll must sit in system32/syswow64, chosen
+# per-app via HKCU\AppDefaults\<exe>\DllOverrides mscoree=native,builtin
+# (R3E has no override and keeps using the builtin).
+# BUT: a native mscoree in system32 at GAME LAUNCH stops R3E's VMProtect
+# launcher, even with no override. Mid-session the swap is harmless (verified
+# live). Hence: builtin at launch (section 2a), native swapped in only after
+# the game is up, builtin restored after a grace period (section 5b).
 # machine.config is .NET-only (R3E never reads it) and may be clobbered by
 # GE-Proton's prefix refresh, so restore it each launch.
-NET_STASH="$HOME/.cache/simhub-on-linux/native-mscoree"
 restore_net_file() { # <stash-file> <dest-path> <label>
     local src="$1" dst="$2" label="$3"
     if [[ -f "$src" ]] && ! cmp -s "$src" "$dst" 2>/dev/null; then
@@ -136,8 +165,8 @@ restore_net_file() { # <stash-file> <dest-path> <label>
 if [[ -f "$NET_STASH/mscoree.dll.x86" ]]; then
     restore_net_file "$NET_STASH/machine.config.x64" "$WINEPREFIX/drive_c/windows/Microsoft.NET/Framework64/v4.0.30319/Config/machine.config" "machine.config (64-bit)"
     restore_net_file "$NET_STASH/machine.config.x86" "$WINEPREFIX/drive_c/windows/Microsoft.NET/Framework/v4.0.30319/Config/machine.config" "machine.config (32-bit)"
-    restore_net_file "$NET_STASH/mscoree.dll.x86" "$WINEPREFIX/drive_c/Program Files (x86)/Britton IT Ltd/CrewChiefV4/mscoree.dll" "app-dir mscoree (CrewChief)"
-    restore_net_file "$NET_STASH/mscoree.dll.x86" "$HOME/.cache/dash/mscoree.dll" "app-dir mscoree (dash.exe)"
+    restore_net_file "$NET_STASH/mscoree.dll.x64" "$WINEPREFIX/drive_c/windows/system32/mscoree.dll" "native mscoree (system32)"
+    restore_net_file "$NET_STASH/mscoree.dll.x86" "$WINEPREFIX/drive_c/windows/syswow64/mscoree.dll" "native mscoree (syswow64)"
 else
     log "WARNING: native .NET stash missing ($NET_STASH); .NET apps may run under wine-mono"
 fi
@@ -146,12 +175,15 @@ fi
 launch_one() {
     local label="$1"
     local exe="$2"
+    shift 2  # remaining args are passed to the exe
 
     if [[ ! -f "$exe" ]]; then
         log "[skip] $label not installed in prefix ($exe)"
         return
     fi
-    if pgrep -f "$(basename "$exe")" >/dev/null 2>&1; then
+    # Wine-process check only — pgrep -f would match ANY process whose argv
+    # mentions the exe name (e.g. a shell monitoring this very setup).
+    if wine_proc_running "$(basename "$exe")"; then
         log "[skip] $label already running"
         return
     fi
@@ -163,14 +195,28 @@ launch_one() {
     # the name of file-backed std handles in 32-bit processes. Each child gets
     # its own log so failures can be attributed to a specific app.
     LD_PRELOAD='' WINEFSYNC=1 WINEESYNC=1 WINEPREFIX="$WINEPREFIX" \
-        "${wine_launcher_cmd[@]}" "$exe" 2>&1 | cat >"$LOG_DIR/$label.log" &
+        "${wine_launcher_cmd[@]}" "$exe" "$@" 2>&1 | cat >"$LOG_DIR/$label.log" &
 }
 
 # SimHub is intentionally NOT launched: its WPF UI requires the native mscoree
 # in system32, which breaks R3E's VMProtect launcher (see section 4). Telemetry
 # is provided by CrewChief; dash.exe (SealHUD) is the overlay.
+# SKIP_UPDATES: CrewChief's startup update check crashes under this wine
+# (c0000005 during the NTLM/HTTP path; ntlm_auth is broken inside the runtime).
 log "[skip] SimHub disabled (WPF needs system32 native mscoree, which breaks R3E)"
-launch_one "CrewChief" "$WINEPREFIX/drive_c/Program Files (x86)/Britton IT Ltd/CrewChiefV4/CrewChiefV4.exe"
+launch_one "CrewChief" "$WINEPREFIX/drive_c/Program Files (x86)/Britton IT Ltd/CrewChiefV4/CrewChiefV4.exe" SKIP_UPDATES
 launch_one "dash.exe"  "$HOME/.cache/dash/dash.exe"
+
+# --- 5b. Restore R3E-safe mscoree once the game exits --------------------------
+# The on-disk mscoree only matters for NEW .NET processes (running apps keep
+# the mapped native copy), but leave it untouched during the session to avoid
+# any interaction with the game. Restoring after game exit keeps the prefix
+# safe for a plain (helper-less) game launch. Section 2a re-does this at every
+# helper start anyway, in case this guard never fires (crash, reboot).
+(
+    while game_running; do sleep 30; done
+    ensure_builtin_mscoree
+    log "== game exited; builtin mscoree restored, background guard done"
+) &
 
 log "== helpers spawned, exiting"
