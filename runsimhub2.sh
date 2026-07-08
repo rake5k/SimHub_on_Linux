@@ -21,6 +21,36 @@ fi
 #If running Game is LMU check if all configs are done:
 check_LMU
 
+###############################################
+# R3E (AppID 211500): SHM telemetry requires #
+# the Steam launch-options wrapper — print    #
+# the string and exit.                        #
+###############################################
+if [[ "$game" = "211500" ]]; then
+    script_dir="$(realpath "$(dirname "$0")")"
+    helper="$script_dir/r3e_launch_helpers.sh"
+    if [[ ! -x "$helper" ]]; then
+        echo "ERROR: $helper missing or not executable."
+        echo "Run: chmod +x \"$helper\""
+        exit 1
+    fi
+    cat <<EOF
+
+R3E telemetry note:
+SimHub, CrewChief, and dash.exe must run in R3E's Proton sandbox to see its
+shared-memory section. They cannot be launched post-hoc because the sandbox
+has a private /tmp. Paste the following into Steam → R3E → Properties →
+Launch Options (replacing any existing value), save, close Steam, and start
+R3E from Steam:
+
+bash -c '"$helper" & DXVK_FRAME_RATE=145 gamemoderun %command%'
+
+SimHub, CrewChief, and dash.exe will launch automatically if installed.
+Helper log: ~/.cache/simhub-on-linux/r3e_launch_helpers.log
+EOF
+    exit 0
+fi
+
 # Check if SimHub install exists
 SIMHUB_EXE="$STEAM_DIR/steamapps/compatdata/$game/pfx/drive_c/Program Files (x86)/SimHub/SimHubWPF.exe"
 
@@ -38,6 +68,3 @@ echo "Launching SimHub..."
 export PYTHONWARNINGS="ignore::UserWarning"
 steam-run protontricks-launch --appid "$game" "$SIMHUB_EXE" >/dev/null 2>&1 &
 echo "SimHub has been launched!"
-
-#If running Game is Raceroom launch dash.exe for SealHUD
-check_Raceroom

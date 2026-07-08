@@ -23,7 +23,7 @@
 - `Detects installed game used proton version, even LMU custom Proton-GE`
 - `Can install LMU custom Proton (Required for LMU)`
 - `Automatically adds plugins and configures LMU`
-- `Automatically adds dash.exe for RaceRomm SealHUD usage`
+- `Launches dash.exe for RaceRoom SealHUD if present in ~/.cache/dash/ (R3E launch-options helper does this; download dash.zip from https://sealhud.github.io/dash.zip once and extract dash.exe into ~/.cache/dash/)`
 - `Offer installation of Proton GE, which has much better .NET compatibility`
 
 ## How to Install && run. Copy Pasta should work:
