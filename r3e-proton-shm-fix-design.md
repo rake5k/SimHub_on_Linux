@@ -4,6 +4,12 @@ Companion to [`r3e-proton-shm-handoff.md`](r3e-proton-shm-handoff.md). Read the
 handoff first for problem analysis and root cause; this document specifies the
 chosen fix.
 
+> **Status:** the launch-options wrapper approach below is implemented and
+> proven, but the helper behavior evolved substantially on NixOS (game-process
+> wait, per-app native mscoree, CrewChief+dash only, no SimHub for R3E). For
+> the current state read [`r3e-nixos-notes.md`](r3e-nixos-notes.md) and
+> [`r3e-session-handoff.md`](r3e-session-handoff.md).
+
 ## Scope
 
 Personal fork only. R3E (`AppID 211500`) only. Other games in the repo

@@ -24,6 +24,7 @@
 - `Can install LMU custom Proton (Required for LMU)`
 - `Automatically adds plugins and configures LMU`
 - `Launches dash.exe for RaceRoom SealHUD if present in ~/.cache/dash/ (R3E launch-options helper does this; download dash.zip from https://sealhud.github.io/dash.zip once and extract dash.exe into ~/.cache/dash/)`
+- `For R3E the helper launches CrewChief and dash.exe only; SimHub is not launched (its WPF UI needs a native mscoree.dll in system32, which stops R3E's VMProtect launcher — see r3e-nixos-notes.md)`
 - `Offer installation of Proton GE, which has much better .NET compatibility`
 
 ## How to Install && run. Copy Pasta should work:
