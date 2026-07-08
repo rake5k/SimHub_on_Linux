@@ -5,10 +5,11 @@ the full findings; this file is only what a new session needs to continue.
 
 ## Where things stand
 
-- **Working end-to-end** (verified 2026-07-08 ~23:55): R3E + CrewChief
-  (real CLR, UI up, `SKIP_UPDATES`) + dash.exe, all launched by the helper
-  from the Steam launch options. Stable > 3 min; a driven lap (spotter audio,
-  live telemetry) is the only remaining functional test.
+- **Working end-to-end, lap test PASSED** (user-confirmed 2026-07-09): R3E +
+  CrewChief (real CLR, `SKIP_UPDATES`) + dash.exe, launched by the helper
+  from the Steam launch options; spotter reacts to driven laps.
+- Reproduction documented in `r3e-nixos-install-guide.md`
+  (+ `r3e_dotnet48_install.sh`, the committed .NET recipe).
 - **Launch options** are set in Steam (written directly to
   `userdata/5051778/config/localconfig.vdf` while Steam was down):
   `/home/christian/code/SimHub_on_Linux/r3e_launch_helpers.sh & DXVK_FRAME_RATE=145 gamemoderun %command%`
@@ -31,12 +32,9 @@ the full findings; this file is only what a new session needs to continue.
 
 ## Immediately pending
 
-1. **User drives a lap**: CrewChief spotter/engineer must react. End-to-end
-   SHM telemetry has never been verified in this project. If CrewChief is
-   silent: check audio device, `Documents/CrewChiefV4/DebugLogs/ErrorLog.txt`,
-   and that CrewChief's game selection is RaceRoom (last console log showed
-   profile game "PCARS" — may need switching in the CrewChief UI once).
-2. `sudo nixos-rebuild switch` on altair, then drop `/tmp/steam-run-ft`.
+1. `sudo nixos-rebuild switch` on altair (activates nixcfg `81e61bdd`), then
+   drop `/tmp/steam-run-ft`.
+2. Push `nixos-support`.
 
 ## Known-good rollback
 
@@ -59,9 +57,7 @@ the full findings; this file is only what a new session needs to continue.
    system. Drop the uncommitted stash `install failing` afterwards.
 2. SimHub for R3E: the post-launch mscoree swap may make WPF viable again —
    untested, revisit on demand.
-3. Update README for the R3E CrewChief-only behavior.
-4. Push `nixos-support` after the lap test passes.
-5. CrewChief updates are skipped (`SKIP_UPDATES`) because the in-app update
+3. CrewChief updates are skipped (`SKIP_UPDATES`) because the in-app update
    check crashes (c0000005, wine NTLM/HTTP). To update CrewChief: run its
    installer/updater outside the game session, then delete the new
    mono-written `user.config` if it self-exits on next CLR run.
