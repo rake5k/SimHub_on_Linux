@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 # Steam directory
 STEAM_DIR="$HOME/.steam/steam"
@@ -279,7 +279,8 @@ dotnet_installed() {
 install_dotnet() {
     echo -e "${CYAN}Installing dotnet48...${NC}"
     echo "Please be patient and do not interrupt the process. (~5min)"
-    protontricks "$game_id" -q --force dotnet48 > /dev/null 2>&1
+    mkdir -p ./log
+    protontricks "$game_id" -q --force dotnet48 > ./log/install_dotnet.log 2>&1
     install_result=$?
     
     
@@ -596,6 +597,6 @@ check_Raceroom() {
         sleep 2
 
         echo "Launching dash.exe, don't forget the SealHUD entry in the Game launcher in Steam."
-        WINEDEBUG=-all protontricks-launch --appid "$game" "$DASH_EXE" 2>/dev/null
+        WINEDEBUG=-all steam-run protontricks-launch --appid "$game" "$DASH_EXE" 2>/dev/null
     fi
 }

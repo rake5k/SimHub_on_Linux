@@ -21,7 +21,7 @@ read -r install_cc
 
 if [ "$install_cc" = "y" ] || [ "$install_cc" = "Y" ]; then
     echo "Downloading CrewChief..."
-    TEMP_DIR="/tmp/crewchief_install_$$"
+    TEMP_DIR="$HOME/.cache/crewchief_install_$$"
     mkdir -p "$TEMP_DIR"
     cd "$TEMP_DIR"
 
@@ -40,7 +40,8 @@ if [ "$install_cc" = "y" ] || [ "$install_cc" = "Y" ]; then
     fi
 
     echo "Extracting CrewChief..."
-    unzip -q "CrewChiefV4.zip" > /dev/null 2>&1
+    mkdir -p ./log
+    unzip -q "CrewChiefV4.zip" > ./log/install_crewchief.log 2>&1
 
     # Find the EXE inside the extracted folder
     CC_EXE=$(find "$TEMP_DIR" -name "CrewChiefV4.exe" -type f)
@@ -57,7 +58,7 @@ if [ "$install_cc" = "y" ] || [ "$install_cc" = "Y" ]; then
     echo -e "${RED}Make sure to press the update CrewChief Option! - This is effectivelly the installer!${NC}"
 
     #Running the installer:
-    protontricks-launch --appid "$game_id" "$CC_EXE" > /dev/null 2>&1
+    steam-run protontricks-launch --appid "$game_id" "$CC_EXE" >> ./log/install_crewchief.log 2>&1
 
     rm -rf "$TEMP_DIR"
 fi
