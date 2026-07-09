@@ -3,6 +3,11 @@
 # Steam directory
 STEAM_DIR="$HOME/.steam/steam"
 
+# steam-run (NixOS) provides the FHS environment protontricks-launch needs;
+# expands to nothing on other distros.
+STEAM_RUN=""
+command -v steam-run > /dev/null 2>&1 && STEAM_RUN="steam-run"
+
 # Define color codes
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -24,6 +29,11 @@ check_tools() {
 
     if ! command -v wget > /dev/null 2>&1 && ! command -v curl > /dev/null 2>&1; then
         echo -e "${RED}WARNING:${NC} wget or curl is not installed (needed for downloads)"
+        missing_tools=1
+    fi
+
+    if [ -e /etc/NIXOS ] && [ -z "$STEAM_RUN" ]; then
+        echo -e "${RED}WARNING:${NC} steam-run is not installed (needed on NixOS to run protontricks-launch)"
         missing_tools=1
     fi
 
@@ -203,10 +213,10 @@ installed_games_detection() {
         echo
         echo -e "${RED}ERROR: The game is currently running!${NC}"
         echo "This locks the game prefix and .NET install fails."
-        echo "Please close "$selected_name" the and re-run this script."
+        echo "Please close $selected_name and re-run this script."
         echo
         printf "${MAGENTA}Press Enter to exit...${NC}"
-        read -r dummy
+        read -r _
         rm -f /tmp/steam_games_$$
         exit 1
     fi
@@ -222,7 +232,7 @@ installed_games_detection() {
         echo "This creates the necessary Proton/Wine prefix files."
         echo
         printf "${MAGENTA}Press Enter to exit...${NC}"
-        read -r dummy
+        read -r _
         rm -f /tmp/steam_games_$$
         exit 1
     fi
@@ -240,7 +250,7 @@ dotnet_installed() {
     # Check if a protontricks installed dotnet48 is present:
     DOTNET_DIR="$WINEPREFIX/drive_c/windows/Microsoft.NET/Framework/v4.0.30319"
 
-    if [ -f "$DOTNET_DIR/mscorlib.dll" ] && [ $(stat -c%s "$DOTNET_DIR/mscorlib.dll") -gt 1000000 ]; then
+    if [ -f "$DOTNET_DIR/mscorlib.dll" ] && [ "$(stat -c%s "$DOTNET_DIR/mscorlib.dll")" -gt 1000000 ]; then
         echo
         echo -e "${GREEN}Microsoft .NET Framework 4.8 appears to already be installed.${NC}"
         echo "A reinstall may be a good idea if app stopped working or install fails."
@@ -279,15 +289,15 @@ dotnet_installed() {
 install_dotnet() {
     echo -e "${CYAN}Installing dotnet48...${NC}"
     echo "Please be patient and do not interrupt the process. (~5min)"
-    mkdir -p ./log
-    protontricks "$game_id" -q --force dotnet48 > ./log/install_dotnet.log 2>&1
+    DOTNET_LOG="$HOME/.cache/simhub-on-linux/install_dotnet.log"
+    mkdir -p "$(dirname "$DOTNET_LOG")"
+    protontricks "$game_id" -q --force dotnet48 > "$DOTNET_LOG" 2>&1
     install_result=$?
-    
-    
+
     if [ "$install_result" -eq 0 ]; then
         echo -e "${GREEN}.NET 4.8 installed successfully.${NC}"
     else
-        echo -e "${RED}.NET 4.8 installation failed (exit code $install_result).${NC}"
+        echo -e "${RED}.NET 4.8 installation failed (exit code $install_result). See $DOTNET_LOG${NC}"
         echo
         test_proton
     fi
@@ -368,7 +378,7 @@ running_game_id() {
         echo "Game variable is empty, no game running."
         echo "Start the game and run this again."
         echo ""
-        read -p "Press ENTER to exit..."
+        read -rp "Press ENTER to exit..."
         exit 1
     fi
     
@@ -444,7 +454,7 @@ check_LMU() {
                 echo "LMU must be closed before we can add the missing plugins."
                 echo "This is only needed on the first run."
                 echo ""
-                read -p "Close LMU and press ENTER to check again..."
+                read -rp "Close LMU and press ENTER to check again..."
             done
         fi
 
@@ -543,4 +553,49 @@ check_LMU() {
             exit 0
         fi
     fi
+}
+
+###############################################
+# Special handling for RaceRoom (211500)
+###############################################
+# R3E telemetry apps must start inside the game's Proton sandbox — print the
+# Steam launch-options string and exit.
+check_Raceroom() {
+    if [[ "$game" != "211500" ]]; then
+        return 0
+    fi
+
+    local script_dir helper
+    script_dir="$(realpath "$(dirname "${BASH_SOURCE[0]}")")"
+    helper="$script_dir/r3e_launch_helpers.sh"
+    if [[ ! -x "$helper" ]]; then
+        echo "ERROR: $helper missing or not executable."
+        echo "Run: chmod +x \"$helper\""
+        exit 1
+    fi
+    cat <<EOF
+
+R3E telemetry note:
+CrewChief and dash.exe must run in R3E's Proton sandbox to see its
+shared-memory section. They cannot be launched post-hoc because the sandbox
+has a private /tmp. SimHub is NOT launched for R3E: its WPF UI needs a
+native mscoree in system32, which breaks R3E's launcher (see
+r3e-nixos-notes.md).
+
+Paste the following into Steam → R3E → Properties → Launch Options as ONE
+line, no quotes, no line breaks (replacing any existing value), save, and
+start R3E from Steam:
+
+$helper & %command%
+
+Optional extras go before %command% — only add commands that are actually
+installed, a missing one (e.g. gamemoderun without gamemode) makes the whole
+line fail and the game won't start. Example:
+
+$helper & DXVK_FRAME_RATE=145 gamemoderun %command%
+
+CrewChief and dash.exe start automatically once the game is up.
+Helper log: ~/.cache/simhub-on-linux/r3e_launch_helpers.log
+EOF
+    exit 0
 }

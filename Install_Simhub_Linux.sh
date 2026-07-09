@@ -1,10 +1,15 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 # SimHUB Version that will be downloaded
 version=9.11.11
 
 #Run the populate script:
-source ./shared_functions.sh
+source "$(dirname "$0")/shared_functions.sh" || exit 1
+
+clean_tmp() {
+    rm -rf "$TEMP_DIR"
+    rm -f /tmp/steam_games_$$
+}
 
 #Check if tools like protontricks are installed:
 check_tools
@@ -26,7 +31,7 @@ if [ "$install_simhub" = "y" ] || [ "$install_simhub" = "Y" ]; then
     # Create temporary directory for download
     TEMP_DIR="$HOME/.cache/simhub_install_$$"
     mkdir -p "$TEMP_DIR"
-    cd "$TEMP_DIR"
+    cd "$TEMP_DIR" || exit 1
 
     # Download SimHub
     if command -v wget > /dev/null 2>&1; then
@@ -76,14 +81,14 @@ echo "3. Created Menu entries are unreliable, use the runsimhub.sh script to run
 echo -e "${CYAN}==========================================${NC}"
 echo
 printf "${MAGENTA}Press Enter to start the SimHub installer...${NC}"
-read -r dummy
+read -r _
 
 echo -e "Installing SimHub... If rundll32.exe popups appear click No"
 #Seems setting windows11 is sometimes required, probable depends on proton version:
 #protontricks "$game_id" -q win11 >/dev/null 2>&1;
 
 # Run the SimHUB installer
-if protontricks-launch --appid "$game_id" "$SIMHUB_SETUP_EXE" >/dev/null 2>&1; then
+if $STEAM_RUN protontricks-launch --appid "$game_id" "$SIMHUB_SETUP_EXE" >/dev/null 2>&1; then
     echo -e "${GREEN}SimHub installation completed successfully!${NC}"
     echo
     echo -e "Tip: You can add the ${GREEN}runsimhub2.sh${NC} as a menu launcher."
@@ -103,10 +108,5 @@ else
     echo
     echo -e "${RED}SimHub installation failed or cancelled${NC}"
 fi
-
-clean_tmp() {
-    rm -rf "$TEMP_DIR"
-    rm -f /tmp/steam_games_$$
-}
 
 clean_tmp

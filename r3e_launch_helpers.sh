@@ -3,10 +3,11 @@
 #
 # Runs inside R3E's Proton pressure-vessel session (because Steam evaluates the
 # launch-options bash inside the bwrap). Waits for R3E's wineserver to be up,
-# discovers a wine launcher, then backgrounds SimHub, CrewChief, and dash.exe
-# in the same bwrap so they share R3E's wineserver and can open $R3E SHM.
+# discovers a wine launcher, then backgrounds CrewChief and dash.exe in the
+# same bwrap so they share R3E's wineserver and can open $R3E SHM. SimHub is
+# intentionally NOT launched (see section 5).
 #
-# See r3e-proton-shm-fix-design.md for the why.
+# See r3e-nixos-notes.md for the why.
 
 set -u
 
@@ -15,8 +16,8 @@ LOG_DIR="$HOME/.cache/simhub-on-linux"
 LOG_FILE="$LOG_DIR/r3e_launch_helpers.log"
 
 mkdir -p "$LOG_DIR"
-# Truncate and redirect own stdout/stderr to the log.
-: > "$LOG_FILE"
+# Keep the previous session's log for post-mortems, then redirect to a fresh one.
+[[ -f "$LOG_FILE" ]] && mv -f "$LOG_FILE" "$LOG_FILE.prev"
 exec >>"$LOG_FILE" 2>&1
 
 ts() { date +%H:%M:%S; }
@@ -59,18 +60,23 @@ ensure_builtin_mscoree() {
         src="$NET_STASH/mscoree.dll.ge-builtin.$arch"
         dst="$WINEPREFIX/drive_c/windows/$dir/mscoree.dll"
         if [[ -f "$src" ]] && ! cmp -s "$src" "$dst" 2>/dev/null; then
-            cp -f "$src" "$dst" && log "restored GE builtin mscoree ($dir)"
+            if cp -f "$src" "$dst"; then
+                log "restored GE builtin mscoree ($dir)"
+            else
+                log "ERROR: failed to restore GE builtin mscoree ($dir) — R3E's launcher may not start"
+            fi
         fi
     done
 }
 ensure_builtin_mscoree
 
 # --- 2. Wait for wineserver socket --------------------------------------------
-log "waiting for wineserver socket in /tmp/.wine-1000/ (up to 60s)..."
+WINE_TMP="/tmp/.wine-$(id -u)"
+log "waiting for wineserver socket in $WINE_TMP/ (up to 60s)..."
 socket=""
 deadline=$(( $(date +%s) + 60 ))
 while [[ -z "$socket" && $(date +%s) -lt $deadline ]]; do
-    socket=$(find /tmp/.wine-1000 -maxdepth 2 -path '*/server-*/socket' 2>/dev/null | head -1)
+    socket=$(find "$WINE_TMP" -maxdepth 2 -path '*/server-*/socket' 2>/dev/null | head -1)
     [[ -z "$socket" ]] && sleep 1
 done
 if [[ -z "$socket" ]]; then
@@ -99,7 +105,7 @@ wine_proc_running() { # <exe basename, case-insensitive>
     return 1
 }
 game_running() { wine_proc_running "rrre64.exe"; }
-log "waiting for RRRE64.exe process (comm match, up to 600s)..."
+log "waiting for RRRE64.exe process (wine exe + argv[0] match, up to 600s)..."
 game_deadline=$(( $(date +%s) + 600 ))
 until game_running; do
     if [[ $(date +%s) -ge $game_deadline ]]; then
@@ -133,6 +139,7 @@ if [[ ${#wine_launcher_cmd[@]} -eq 0 ]]; then
     if [[ -x "$fallback" ]]; then
         wine_launcher_cmd=("$fallback")
         wine_strategy="hardcoded fallback -> $fallback"
+        log "WARNING: STEAM_COMPAT_TOOL_PATHS gave no wine64; falling back to $fallback — this may not match the Proton running the game"
     fi
 fi
 
@@ -159,7 +166,11 @@ restore_net_file() { # <stash-file> <dest-path> <label>
     local src="$1" dst="$2" label="$3"
     if [[ -f "$src" ]] && ! cmp -s "$src" "$dst" 2>/dev/null; then
         mkdir -p "$(dirname "$dst")"
-        cp -f "$src" "$dst" && log "restored $label"
+        if cp -f "$src" "$dst"; then
+            log "restored $label"
+        else
+            log "ERROR: failed to restore $label — .NET apps may run under wine-mono"
+        fi
     fi
 }
 if [[ -f "$NET_STASH/mscoree.dll.x86" ]]; then
@@ -196,6 +207,13 @@ launch_one() {
     # its own log so failures can be attributed to a specific app.
     LD_PRELOAD='' WINEFSYNC=1 WINEESYNC=1 WINEPREFIX="$WINEPREFIX" \
         "${wine_launcher_cmd[@]}" "$exe" "$@" 2>&1 | cat >"$LOG_DIR/$label.log" &
+    # Surface crash-on-start: after a grace period the app must show up as a
+    # wine process (argv[0] = exe) — its stdout is useless for liveness.
+    (
+        sleep 15
+        wine_proc_running "$(basename "$exe")" \
+            || log "WARNING: $label not running 15s after launch — see $LOG_DIR/$label.log"
+    ) &
 }
 
 # SimHub is intentionally NOT launched: its WPF UI requires the native mscoree
