@@ -9,8 +9,8 @@ lap) on NixOS 26.05, glibc 2.42, X11/XWayland, 2026-07-09.
 Background for every non-obvious step is in `r3e-nixos-notes.md`. Read the
 [Troubleshooting](#troubleshooting) table before deviating.
 
-Path conventions: Steam at `~/.local/share/Steam` (alias `~/.steam/steam`),
-this repo at `~/code/SimHub_on_Linux`. Adjust to taste.
+Path conventions: Steam at `~/.local/share/Steam` (alias `~/.steam/steam`);
+`<repo>` stands for the absolute path of your local clone of this repo.
 
 ## 1. NixOS configuration
 
@@ -69,8 +69,8 @@ mkdir -p ~/.cache/winetricks/dotnet40 ~/.cache/winetricks/dotnet48 \
 
 | File | Target | Source |
 |---|---|---|
-| `dotNetFx40_Full_x86_x64.exe` | `~/.cache/winetricks/dotnet40/` | Microsoft; canonical URL in the winetricks `dotnet40` verb |
-| `ndp48-x86-x64-allos-enu.exe` | `~/.cache/winetricks/dotnet48/` | Microsoft; canonical URL in the winetricks `dotnet48` verb |
+| `dotNetFx40_Full_x86_x64.exe` | `~/.cache/winetricks/dotnet40/` | Microsoft; canonical URL: `grep -A2 'w_metadata dotnet40 ' $(command -v winetricks)` or the winetricks source on GitHub |
+| `ndp48-x86-x64-allos-enu.exe` | `~/.cache/winetricks/dotnet48/` | Microsoft; canonical URL: same lookup for the `dotnet48` verb |
 | `CrewChiefV4.msi` | `~/.cache/simhub-on-linux/` | https://thecrewchief.org/ |
 | `dash.zip` → extract | `~/.cache/dash/` | https://sealhud.github.io/dash.zip |
 
@@ -104,7 +104,9 @@ It verifies itself by listing
 `.../Microsoft.NET/Framework64/v4.0.30319/mscorlib.dll` at the end. The
 script leaves winver at win10 and removes the null-driver key.
 
-Adjust `W=` in the script if the UMU-Proton directory name differs.
+If the UMU-Proton directory name differs, set
+`R3E_PROTON_BIN=<proton>/files/bin` in the environment; the script fails
+fast when `wine64` is not found there.
 
 ## 6. Extract and stash native mscoree + machine.config
 
@@ -120,11 +122,11 @@ msiextract netfx_Core_x64.msi
 S=~/.cache/simhub-on-linux/native-mscoree; mkdir -p "$S"
 cp Windows/System64/mscoree.dll "$S/mscoree.dll.x64"   # 444752 bytes
 cp Windows/System/mscoree.dll   "$S/mscoree.dll.x86"   # 297808 bytes
-# machine.config (35955 bytes, same content both arches) — find it in the
-# extracted tree:
-find . -name machine.config
-cp <x64 copy> "$S/machine.config.x64"
-cp <x86 copy> "$S/machine.config.x86"
+# machine.config (35955 bytes, identical content for both arches) — locate
+# one copy in the extracted tree and stash it under both names:
+mc=$(find . -name machine.config | head -1)
+cp "$mc" "$S/machine.config.x64"
+cp "$mc" "$S/machine.config.x86"
 ```
 
 Deploy machine.config into the prefix and stash GE-Proton's builtin mscoree
@@ -195,10 +197,12 @@ drift, notes breakage 7). Keep a backup of `user.reg` first.
 In Steam → R3E → Properties → Launch Options, as ONE line:
 
 ```
-/home/<user>/code/SimHub_on_Linux/r3e_launch_helpers.sh & DXVK_FRAME_RATE=145 gamemoderun %command%
+<repo>/r3e_launch_helpers.sh & DXVK_FRAME_RATE=145 gamemoderun %command%
 ```
 
-`DXVK_FRAME_RATE`/`gamemoderun` are optional; the helper part is not.
+`DXVK_FRAME_RATE`/`gamemoderun` are optional; the helper part is not. Only
+include commands that are installed — a missing `gamemoderun` makes the
+whole line fail and the game won't start.
 Rules that this line already obeys — violate them and the game dies
 instantly at launch:
 
@@ -219,10 +223,11 @@ Start R3E from Steam. Expected helper timeline in
 ```
 == r3e_launch_helpers.sh starting (pid=…, mnt_ns=…)   # inside the game's bwrap
 WINEPREFIX=…/compatdata/211500/pfx
-wineserver socket found: /tmp/.wine-1000/server-…
+wineserver socket found: /tmp/.wine-<uid>/server-…
 waiting for RRRE64.exe process (…)
 RRRE64.exe detected; settling 15s …                    # 20 s – 5 min (cold VMProtect start)
 restored native mscoree (system32) / (syswow64)
+[skip] SimHub disabled (WPF needs system32 native mscoree, which breaks R3E)   # expected, not an error
 [launch] CrewChief -> …
 [launch] dash.exe  -> …
 == helpers spawned, exiting

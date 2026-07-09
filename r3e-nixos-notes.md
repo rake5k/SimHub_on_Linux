@@ -1,9 +1,9 @@
 # R3E telemetry on NixOS — findings and recipes
 
 Reference for running RaceRoom Racing Experience (AppID 211500, GE-Proton10-34)
-with CrewChief, SimHub, and dash.exe (SealHUD / user refers to it as ReHUD) on
-NixOS. Every claim below was verified by reproduction on host `altair`
-(NixOS 26.05, glibc 2.42, kernel 7.0.12, niri/XWayland).
+with CrewChief, SimHub, and dash.exe (SealHUD) on NixOS. Every claim below was
+verified by reproduction on NixOS 26.05 (glibc 2.42, kernel 7.0.12,
+niri/XWayland).
 
 ## Architecture (recap)
 
@@ -11,10 +11,22 @@ Pressure-vessel gives each Proton session a private tmpfs `/tmp`. R3E's
 telemetry is a Wine named file mapping (`$R3E`), scoped to the wineserver whose
 socket lives in that private `/tmp`. Any telemetry consumer must therefore run
 inside the game's own sandbox. `r3e_launch_helpers.sh`, referenced from the
-Steam launch options (`bash -c '<helper> & exec %command%'`), runs inside the
-sandbox and launches the consumers there. Post-hoc launching
-(`protontricks-launch --appid`) creates a new sandbox and can never see the
-mapping. See `r3e-proton-shm-fix-design.md`.
+Steam launch options (`<helper> & ... %command%`, quote-free — see "Launch
+options" below), runs inside the sandbox and launches the consumers there.
+Post-hoc launching (`protontricks-launch --appid`) creates a new sandbox and
+can never see the mapping.
+
+Dead ends, all verified (probe: mingw exe calling `OpenFileMappingA` on
+`$R3E`/`Local\$R3E`/`Global\$R3E` — the section name is `$R3E` per the
+official `sector3-studios/r3e-api` header; every post-hoc variant returns
+`ERROR_FILE_NOT_FOUND`):
+
+- Running CrewChief/SimHub natively on Linux against R3E's SHM.
+- `protontricks-launch --appid 211500` (with or without `--no-bwrap` — its
+  wine banner shows a NEW wineserver starting, not R3E's).
+- Side-launching via Lutris/Heroic/manual Proton invocation after R3E is up.
+- Looking in `/dev/shm` for the section (not how modern Wine backs named
+  mappings).
 
 ## Hard constraint: SimHub vs. R3E
 
@@ -62,8 +74,8 @@ Reference file sizes for identification:
    `steam-run .../GE-Proton10-34/files/bin/wine cmd.exe /c echo x > /tmp/f`
    → rc=139.
 2. **nixpkgs `steam-run` ships no 32-bit freetype/fontconfig** → wine GUI
-   processes (msiexec, uninstaller, installers) hang at 0% CPU. Fixed
-   declaratively in nixcfg (`81e61bdd`):
+   processes (msiexec, uninstaller, installers) hang at 0% CPU. Fix
+   declaratively:
    `programs.steam.package = pkgs.steam.override { extraLibraries = p: [ p.freetype p.fontconfig ]; }`.
    `steam-run` inherits the override via `cfg.package.run`.
 3. **Proton wine `fs_get_gpus` (winex11) deadlocks 32-bit GUI processes** on a
@@ -91,8 +103,8 @@ Reference file sizes for identification:
 
 ## Working dotnet48 install recipe (host-side)
 
-`~/.cache/simhub-on-linux/dotnet48-manual.sh` — replay of the winetricks
-dotnet48 verb without winecfg:
+`r3e_dotnet48_install.sh` (this repo) — replay of the winetricks dotnet48
+verb without winecfg:
 
 - wine: UMU-Proton-9.0-4e (`files/bin/wine`), via freetype-fixed `steam-run`.
 - null display driver on; `WINEDLLOVERRIDES=fusion=b`; fsync/esync off.
@@ -133,8 +145,11 @@ dotnet48 verb without winecfg:
 ## Launch options (Steam)
 
 ```
-/home/christian/code/SimHub_on_Linux/r3e_launch_helpers.sh & DXVK_FRAME_RATE=145 gamemoderun %command%
+<repo>/r3e_launch_helpers.sh & DXVK_FRAME_RATE=145 gamemoderun %command%
 ```
+
+`DXVK_FRAME_RATE`/`gamemoderun` are optional; omit any command that is not
+installed (a missing one makes the whole line fail and the game won't start).
 
 Quote-free on purpose: Steam runs the line via `sh -c`, and a
 `bash -c '... %command%'` wrapper breaks because the `%command%` expansion
@@ -150,7 +165,7 @@ Steam is fully shut down).
 2. Force UTF-8 locale.
 2a. Restore GE builtin `mscoree.dll` to `system32`/`syswow64` (R3E-safe) in
    case a previous session left the native one (game has not started yet).
-3. Wait for the wineserver socket in `/tmp/.wine-1000/`.
+3. Wait for the wineserver socket in `/tmp/.wine-<uid>/`.
 4. Wait for the game (up to 600 s; cold VMProtect starts have taken > 4 min):
    a wine process (`/proc/*/exe` → `*Proton*|*/wine*`) whose argv[0] ends in
    `RRRE64.exe`. Do NOT match `/proc/*/comm` — R3E's CEF frontend renames its
@@ -174,5 +189,5 @@ Steam is fully shut down).
    CrewChief restarts itself (e.g. sound pack update), restart the game via
    Steam instead.
 
-Diagnostics: `~/.cache/simhub-on-linux/verify.sh` (run while the game is up),
-`~/.cache/simhub-on-linux/find-game.sh` (identify the real game process).
+Diagnostics: helper log plus per-app logs in `~/.cache/simhub-on-linux/`
+(previous session kept as `r3e_launch_helpers.log.prev`).
